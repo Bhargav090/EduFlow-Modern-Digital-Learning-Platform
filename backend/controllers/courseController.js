@@ -13,12 +13,11 @@ const {
 // @route   POST /api/courses
 // @access  Private/Instructor
 const createCourse = async (req, res) => {
-    const { title, description, price, isPublic, category, tags, isPlaylist, content } = req.body;
+    const { title, description, isPublic, category, tags, isPlaylist, content } = req.body;
 
     const course = new Course({
         title,
         description,
-        price,
         isPublic,
         category,
         tags,
@@ -85,7 +84,7 @@ const getCourseById = async (req, res) => {
 // @route   PUT /api/courses/:id
 // @access  Private/Instructor
 const updateCourse = async (req, res) => {
-    const { title, description, content, category, tags } = req.body;
+    const { title, description, content, category, tags, isPublic } = req.body;
 
     const course = await Course.findById(req.params.id);
 
@@ -100,6 +99,9 @@ const updateCourse = async (req, res) => {
         course.content = content || course.content;
         course.category = category || course.category;
         course.tags = tags || course.tags;
+        if (typeof isPublic === 'boolean') {
+            course.isPublic = isPublic;
+        }
 
         const updatedCourse = await course.save();
 

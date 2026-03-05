@@ -14,10 +14,6 @@ const courseSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
-    price: {
-        type: Number,
-        default: 0
-    },
     college: {
         type: String, // Which college this course belongs to
         required: false
@@ -40,6 +36,11 @@ const courseSchema = new mongoose.Schema({
     enrolledStudents: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
+    }],
+    lectures: [{
+        title: String,
+        url: String,
+        duration: Number // in seconds
     }],
     content: [{
         title: String,

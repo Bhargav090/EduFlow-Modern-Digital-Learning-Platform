@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const EmailAlias = require('../models/EmailAlias');
 const generateToken = require('../utils/generateToken');
 
 // @desc    Register a new user
@@ -14,8 +15,18 @@ const registerUser = async (req, res) => {
         return;
     }
 
-    // Extract college from email (e.g., bhargav@srmap.edu.in -> srmap.edu.in)
-    const college = email.split('@')[1];
+    // Enforce EDU emails or mapped aliases
+    const domain = (email.split('@')[1] || '').toLowerCase();
+    let college = domain;
+    if (!domain.includes('edu')) {
+        const alias = await EmailAlias.findOne({ personalEmail: email.toLowerCase() });
+        if (!alias) {
+            res.status(400).json({ message: 'Only institutional .edu emails are allowed to register' });
+            return;
+        }
+        // Use alias mapping
+        college = alias.collegeDomain.toLowerCase();
+    }
 
     const user = await User.create({
         name,
@@ -57,7 +68,15 @@ const registerUser = async (req, res) => {
 const authUser = async (req, res) => {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    let user = await User.findOne({ email });
+
+    // If logging in with personal email, try alias map to find edu account
+    if (!user) {
+        const alias = await EmailAlias.findOne({ personalEmail: email.toLowerCase() });
+        if (alias) {
+            user = await User.findOne({ email: alias.eduEmail.toLowerCase() });
+        }
+    }
 
     if (!user) {
         res.status(401).json({ message: 'Invalid email or password' });

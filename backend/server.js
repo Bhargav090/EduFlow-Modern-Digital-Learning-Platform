@@ -3,6 +3,7 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const createDefaultAdmin = require('./utils/createDefaultAdmin');
+const createDefaultAliases = require('./utils/createDefaultAliases');
 const { errorHandler } = require('./middleware/errorMiddleware');
 
 dotenv.config();
@@ -13,7 +14,10 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
 connectDB()
-    .then(createDefaultAdmin)
+    .then(async () => {
+        await createDefaultAdmin();
+        await createDefaultAliases();
+    })
     .catch(() => {});
 
 app.use('/api/auth', require('./routes/authRoutes'));

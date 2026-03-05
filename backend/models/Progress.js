@@ -11,15 +11,25 @@ const progressSchema = new mongoose.Schema({
         ref: 'Course',
         required: true
     },
-    completedContent: [{
-        type: String // Content IDs or indices
+    completedLectures: [{
+        lectureId: mongoose.Schema.Types.ObjectId,
+        completedAt: {
+            type: Date,
+            default: Date.now
+        }
     }],
-    completionPercentage: {
-        type: Number,
-        default: 0
+    lastWatched: {
+        lectureId: mongoose.Schema.Types.ObjectId,
+        timestamp: {
+            type: Number, // in seconds
+            default: 0
+        }
     }
 }, {
     timestamps: true
 });
+
+// Ensure a user can only have one progress document per course
+progressSchema.index({ user: 1, course: 1 }, { unique: true });
 
 module.exports = mongoose.model('Progress', progressSchema);
