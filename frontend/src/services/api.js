@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 // Use direct backend URL as requested (no .env)
-//const BASE_URL = 'https://eduflow-modern-digital-learning-platform.onrender.com/api';
-const BASE_URL = 'http://localhost:5001/api';
+const BASE_URL = 'https://eduflow-modern-digital-learning-platform.onrender.com/api';
+//const BASE_URL = 'http://localhost:5001/api';
 
 const api = axios.create({
   baseURL: BASE_URL,
