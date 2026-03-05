@@ -10,7 +10,6 @@ import FloatingInput from '../components/FloatingInput';
 const CreateCourse = () => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
-    const [price, setPrice] = useState(0);
     const [category, setCategory] = useState('');
     const [tags, setTags] = useState('');
     const [isPublic, setIsPublic] = useState(true);
@@ -137,7 +136,6 @@ const CreateCourse = () => {
             const courseData = { 
                 title, 
                 description, 
-                price, 
                 category: finalCategory, 
                 tags: tags.split(',').map(t => t.trim()), 
                 isPublic, 
@@ -203,15 +201,6 @@ const CreateCourse = () => {
                             />
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <FloatingInput
-                                    id="course-price"
-                                    label="Price ($)"
-                                    type="number"
-                                    value={price}
-                                    onChange={(e) => setPrice(Number(e.target.value))}
-                                    required
-                                />
-
                                 <div className="relative" ref={dropdownRef}>
                                     <div className="relative group">
                                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />

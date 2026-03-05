@@ -1,17 +1,20 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { User, ArrowRight, MoreVertical, LogOut } from 'lucide-react';
+import { User, ArrowRight, MoreVertical, LogOut, Sparkles } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
-const CourseCard = ({ course, isEnrolled, progress: initialProgress, onEnroll, onUnenroll }) => {
+const CourseCard = ({ course, isEnrolled, progress: initialProgress, onEnroll, onUnenroll, isAIRecommended = false }) => {
     const { user } = useAuth();
     const [progress, setProgress] = useState(initialProgress);
     const [enrollLoading, setEnrollLoading] = useState(false);
     const [showOptions, setShowOptions] = useState(false);
     const optionsRef = useRef(null);
+    const lessonsCount = (Array.isArray(course.lectures) && course.lectures.length)
+        ? course.lectures.length
+        : (course.content || []).filter((c) => c.type === 'video').length;
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -74,6 +77,13 @@ const CourseCard = ({ course, isEnrolled, progress: initialProgress, onEnroll, o
         >
             <div className="h-40 bg-gradient-to-br from-indigo-500 to-violet-600 relative overflow-hidden">
                 <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-500" />
+                
+                {isAIRecommended && (
+                    <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 px-2.5 py-1 bg-white/95 backdrop-blur-sm rounded-full text-[10px] font-bold text-indigo-600 shadow-xl border border-indigo-100 animate-bounce">
+                        <Sparkles className="w-3 h-3 fill-indigo-600" />
+                        AI PICK
+                    </div>
+                )}
                 <motion.div 
                     variants={{
                         initial: { scale: 1 },
@@ -83,7 +93,7 @@ const CourseCard = ({ course, isEnrolled, progress: initialProgress, onEnroll, o
                 />
                 <div className="absolute bottom-4 left-4 right-4 z-10 flex justify-between items-center">
                     <span className="px-2 py-1 bg-white/20 backdrop-blur-md rounded text-xs text-white font-medium border border-white/20 shadow-sm">
-                        {course.content?.length || 0} Lessons
+                        {lessonsCount} Lectures
                     </span>
                     
                     {isEnrolled && user?.role === 'student' && (
@@ -150,32 +160,28 @@ const CourseCard = ({ course, isEnrolled, progress: initialProgress, onEnroll, o
                 <div
                     className="mt-4 lg:mt-0 lg:h-0 lg:opacity-0 lg:group-hover:h-auto lg:group-hover:opacity-100 lg:group-hover:mt-4 transition-all duration-300 overflow-hidden"
                 >
-                    {onEnroll && !isEnrolled ? (
-                        <button
-                            onClick={handleEnroll}
-                            disabled={enrollLoading}
-                            className="w-full py-2.5 rounded-lg font-medium text-sm flex items-center justify-center transition-all bg-slate-900 text-white hover:bg-slate-800 shadow-lg shadow-indigo-500/20 disabled:opacity-70 disabled:cursor-not-allowed"
-                        >
-                            {enrollLoading ? (
-                                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                            ) : (
-                                <ArrowRight className="w-4 h-4 mr-2 group-hover:translate-x-1 transition-transform" />
-                            )}
-                            {enrollLoading ? 'Enrolling...' : 'Enroll Now'}
-                        </button>
-                    ) : (
+                    <div className="flex gap-2">
                         <Link 
                             to={`/course/${course._id}`}
-                            className={`w-full py-2.5 rounded-lg font-medium text-sm flex items-center justify-center transition-all ${
+                            className={`flex-1 py-2.5 rounded-lg font-medium text-sm flex items-center justify-center transition-all ${
                                 isEnrolled 
                                     ? 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100' 
                                     : 'bg-slate-900 text-white hover:bg-slate-800 shadow-lg shadow-indigo-500/20'
                             }`}
                         >
-                            {isEnrolled ? (user?.role === 'instructor' ? 'View Content' : 'Continue Learning') : 'View Course'}
+                            {isEnrolled ? (user?.role === 'instructor' ? 'View Content' : 'Resume Learning') : 'View Course'}
                             <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                         </Link>
-                    )}
+                        {onEnroll && !isEnrolled && (
+                            <button
+                                onClick={handleEnroll}
+                                disabled={enrollLoading}
+                                className="px-3 py-2.5 rounded-lg font-medium text-sm bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-70 disabled:cursor-not-allowed"
+                            >
+                                {enrollLoading ? 'Enrolling...' : 'Enroll'}
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
         </motion.div>

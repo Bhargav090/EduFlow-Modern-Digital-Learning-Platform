@@ -41,7 +41,7 @@ const AIChatBot = () => {
         setIsLoading(true);
 
         try {
-            const { data } = await api.post('/api/ai/chat', { 
+            const { data } = await api.post('/ai/chat', { 
                 message: textToSend, 
                 history: newHistory.slice(-6) 
             });
@@ -89,6 +89,9 @@ const AIChatBot = () => {
                                         <div className="w-1 h-1 bg-green-400 rounded-full animate-pulse" />
                                         Always Online
                                     </span>
+                                    <div className="text-[9px] opacity-70 mt-1">
+                                        Powered by Vector DB
+                                    </div>
                                 </div>
                             </div>
                             <div className="flex items-center gap-1">
@@ -109,6 +112,33 @@ const AIChatBot = () => {
 
                         {!isMinimized && (
                             <>
+                                {/* AI Suggestion Header - Fixed at top */}
+                                {suggestions.length > 0 && (
+                                    <div className="bg-indigo-50/50 border-b border-indigo-100 p-3 shrink-0 backdrop-blur-sm">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <div className="flex items-center gap-2 text-indigo-700 font-bold text-[10px] uppercase tracking-wider">
+                                                <Sparkles className="w-3 h-3 animate-pulse" />
+                                                AI Smart Suggestions
+                                            </div>
+                                            <div className="px-1.5 py-0.5 bg-indigo-600 text-white text-[8px] font-black rounded uppercase tracking-tighter">
+                                                Live
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {suggestions.map((s, i) => (
+                                                <button
+                                                    key={i}
+                                                    onClick={() => handleSendMessage(s)}
+                                                    className="text-[10px] font-bold px-3 py-1.5 bg-white text-indigo-600 border border-indigo-200 rounded-full hover:bg-indigo-600 hover:text-white transition-all shadow-sm active:scale-95 flex items-center gap-1.5"
+                                                >
+                                                    <div className="w-1 h-1 bg-indigo-400 rounded-full" />
+                                                    {s}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* Chat Area */}
                                 <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar bg-slate-50/50">
                                     {history.length === 0 && (
@@ -157,20 +187,8 @@ const AIChatBot = () => {
                                     <div ref={chatEndRef} />
                                 </div>
 
-                                {/* Suggestions & Input */}
+                                {/* Input Area */}
                                 <div className="p-4 bg-white border-t border-slate-100 shrink-0">
-                                    <div className="flex flex-wrap gap-2 mb-3">
-                                        {suggestions.map((s, i) => (
-                                            <button
-                                                key={i}
-                                                onClick={() => handleSendMessage(s)}
-                                                className="text-[11px] font-semibold px-3 py-1.5 bg-slate-50 text-slate-600 border border-slate-200 rounded-full hover:border-indigo-400 hover:text-indigo-600 transition-all flex items-center gap-1 group"
-                                            >
-                                                {s}
-                                                <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                            </button>
-                                        ))}
-                                    </div>
                                     <form 
                                         onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
                                         className="flex gap-2"

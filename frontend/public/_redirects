@@ -1,0 +1,3 @@
+/# Netlify redirect to backend API on Render
+/api/* https://eduflow-modern-digital-learning-platform.onrender.com/api/:splat 200
+/*    /index.html   200

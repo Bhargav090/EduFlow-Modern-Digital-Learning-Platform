@@ -3,15 +3,17 @@ import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
-import { motion } from 'framer-motion';
-import { Search, Filter, BookOpen, ChevronDown } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, Filter, BookOpen, ChevronDown, Sparkles, Zap, ArrowRight, Brain } from 'lucide-react';
 import toast from 'react-hot-toast';
 import CourseCard from '../components/CourseCard';
 import SkeletonCard from '../components/SkeletonCard';
 
 const CourseList = () => {
     const [courses, setCourses] = useState([]);
+    const [recommendations, setRecommendations] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [recsLoading, setRecsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
     const [isSearching, setIsSearching] = useState(false);
@@ -32,20 +34,23 @@ const CourseList = () => {
 
     useEffect(() => {
         const fetchSearchData = async () => {
-            if (!debouncedSearchTerm) {
-                const { data } = await api.get('/courses');
-                setCourses(data);
-                return;
+            setLoading(true);
+            if (debouncedSearchTerm) {
+                setIsSearching(true);
             }
-
-            setIsSearching(true);
             try {
-                const { data } = await api.get(`/courses/search?q=${debouncedSearchTerm}`);
-                setCourses(data);
+                if (!debouncedSearchTerm) {
+                    const { data } = await api.get('/courses');
+                    setCourses(data);
+                } else {
+                    const { data } = await api.get(`/courses/search?q=${debouncedSearchTerm}`);
+                    setCourses(data);
+                }
             } catch (error) {
                 console.error("Search failed", error);
             } finally {
                 setIsSearching(false);
+                setLoading(false);
             }
         };
 
@@ -57,10 +62,16 @@ const CourseList = () => {
     useEffect(() => {
         const fetchInitialData = async () => {
             try {
-                const categoriesRes = await api.get('/courses/categories');
+                const [categoriesRes, recsRes] = await Promise.all([
+                    api.get('/courses/categories'),
+                    api.get('/courses/recommendations')
+                ]);
                 setCategories(categoriesRes.data);
+                setRecommendations(recsRes.data);
             } catch (error) {
-                console.error("Failed to fetch categories", error);
+                console.error("Failed to fetch initial data", error);
+            } finally {
+                setRecsLoading(false);
             }
         };
         fetchInitialData();
@@ -88,7 +99,10 @@ const CourseList = () => {
     };
 
     const filteredCourses = courses.filter(course => {
-        const isEnrolled = user.enrolledCourses.includes(course._id) || (course.enrolledStudents && course.enrolledStudents.some(id => (id._id || id) === user._id));
+        const isEnrolled =
+            (user?.enrolledCourses?.includes?.(course._id)) ||
+            (Array.isArray(course.enrolledStudents) &&
+                course.enrolledStudents.some(id => (id?._id || id) === user?._id));
 
         const matchesEnrollFilter = filter === 'all' || 
             (filter === 'enrolled' && isEnrolled) || 
@@ -190,6 +204,40 @@ const CourseList = () => {
                     </div>
                 </div>
 
+                {/* AI Recommendations Section */}
+                {!searchTerm && recommendations.length > 0 && (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <div className="p-2 bg-indigo-100 rounded-lg">
+                                    <Brain className="w-5 h-5 text-indigo-600" />
+                                </div>
+                                <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                                    AI <span className="text-indigo-600">Recommended</span> for You
+                                    <Sparkles className="w-5 h-5 text-amber-400 animate-pulse" />
+                                </h2>
+                            </div>
+                            <div className="hidden sm:flex items-center gap-1 px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs font-bold border border-indigo-100">
+                                <Zap className="w-3 h-3 fill-indigo-700" />
+                                POWERED BY VECTOR DB
+                            </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {recommendations.map((course) => (
+                                <CourseCard
+                                    key={`rec-${course._id}`}
+                                    course={course}
+                                    isEnrolled={user.enrolledCourses.includes(course._id)}
+                                    onEnroll={enroll}
+                                    isAIRecommended={true}
+                                />
+                            ))}
+                        </div>
+                        <div className="h-px bg-slate-200 w-full my-8" />
+                    </div>
+                )}
+
                 {/* Course Grid */}
                 {loading || isSearching ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -197,10 +245,21 @@ const CourseList = () => {
                             <SkeletonCard key={n} />
                         ))}
                     </div>
+                ) : filteredCourses.length === 0 ? (
+                    <div className="text-center py-20 glass-panel rounded-2xl border-dashed border-2 border-slate-300">
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 mb-4">
+                            <BookOpen className="w-8 h-8 text-slate-400" />
+                        </div>
+                        <h3 className="text-lg font-medium text-slate-900">No courses found</h3>
+                        <p className="text-sm text-slate-500 mt-2">Try clearing filters or searching for a different term.</p>
+                    </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {filteredCourses.map((course) => {
-                            const isEnrolled = user.enrolledCourses.includes(course._id) || course.enrolledStudents.includes(user._id);
+                            const isEnrolled =
+                                (Array.isArray(user?.enrolledCourses) && user.enrolledCourses.includes(course._id)) ||
+                                (Array.isArray(course.enrolledStudents) &&
+                                    course.enrolledStudents.some(id => (id?._id || id) === user?._id));
                             
                             return (
                                 <CourseCard

@@ -14,6 +14,7 @@ import AdminPanel from './pages/AdminPanel';
 import Onboarding from './pages/Onboarding';
 import PageTransition from './components/PageTransition';
 import AIChatBot from './components/AIChatBot';
+import DemoPage from './pages/DemoPage';
 
 const PrivateRoute = ({ children }) => {
     const { user, loading } = useAuth();
@@ -44,6 +45,7 @@ const AnimatedRoutes = () => {
                 <Route path="/profile" element={<PrivateRoute><PageTransition><Profile /></PageTransition></PrivateRoute>} />
                 <Route path="/onboarding" element={<PrivateRoute><PageTransition><Onboarding /></PageTransition></PrivateRoute>} />
                 <Route path="/" element={<PageTransition><Landing /></PageTransition>} />
+                <Route path="/demo" element={<PageTransition><DemoPage /></PageTransition>} />
                 <Route path="/admin-pannel_ed" element={<PageTransition><AdminPanel /></PageTransition>} />
             </Routes>
         </AnimatePresence>

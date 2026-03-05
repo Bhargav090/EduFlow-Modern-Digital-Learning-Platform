@@ -8,6 +8,7 @@ export default defineConfig({
     proxy: {
       '/api': {
         target: 'http://localhost:5001',
+         //target: 'https://eduflow-modern-digital-learning-platform.onrender.com',
         changeOrigin: true,
         secure: false,
       },
